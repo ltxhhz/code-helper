@@ -7,3 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## v0.0.1 - 2024/4/8
 
 - Initial release
+
+## v0.0.2 - 2024/4/8
+
+- 粘贴内容中存在连续两个反斜杠才会触发
