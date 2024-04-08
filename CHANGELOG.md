@@ -4,6 +4,6 @@ All notable changes to the "code-helper" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## v0.0.1 - 2024/4/8
 
 - Initial release
