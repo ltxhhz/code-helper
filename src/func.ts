@@ -11,6 +11,7 @@ export async function replaceBackslash(event: vscode.TextDocumentChangeEvent) {
     event.document !== activeEditor.document ||
     !clipboardText.includes('\\') ||
     /^(\\\w)+$/.test(clipboardText) || //转义字符
+    /([^\\]|^)\\{2}(?!\\)/.test(clipboardText) || //连续两个反斜杠
     event.reason || //undo & redo
     !event.contentChanges.length ||
     event.contentChanges.some(e => e.text !== clipboardText)
