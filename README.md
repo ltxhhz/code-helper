@@ -23,6 +23,9 @@ Code Helper is a convenient Visual Studio Code plugin designed to enhance develo
 
 - **快速替换字符串引号**：选中被引号包围的字符串后，通过快捷键或命令，可以快速将字符串的引号替换为其他引号。例如，选中 `'123'`，按下双引号键，即可将字符串替换为 `"123"`，`Ctrl + z` 可撤销。
 - **Quick Replacement of String Quotes**: After selecting a string enclosed by quotes, you can swiftly replace the quotes with other quotes using shortcut keys or commands. For example, selecting `'123'` and pressing the double quote key will replace the string with `"123"`. `Ctrl + Z` can be used to undo.
+
+  > 支持 `` ' " ` `` 三种引号
+
   ![示例2](./imgs/2.gif)
 
 ## 🚀 [安装 Installation](https://marketplace.visualstudio.com/items?itemName=ltxhhz.ltxhhz-code-helper)
