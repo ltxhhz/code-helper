@@ -27,6 +27,14 @@
   "contributes": {
     "commands": []
   },
+  "bugs": {
+    "url": "https://github.com/ltxhhz/code-helper/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ltxhhz/code-helper"
+  },
+  "homepage": "https://github.com/ltxhhz/code-helper",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
