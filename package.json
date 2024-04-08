@@ -2,7 +2,7 @@
   "name": "ltxhhz-code-helper",
   "displayName": "code helper",
   "description": "快速处理粘贴的反斜杠，快速切换引号",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "keywords": [
     "code helper",
@@ -41,7 +41,9 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "build": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/vscode": "^1.70.0",
