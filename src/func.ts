@@ -1,26 +1,34 @@
-import * as vscode from 'vscode'
+import vscode from 'vscode'
 
 /**
  * 替换反斜杠(\)为双反斜杠(\\)
  */
 export async function replaceBackslash(event: vscode.TextDocumentChangeEvent) {
-  let activeEditor = vscode.window.activeTextEditor
+  const activeEditor = vscode.window.activeTextEditor
+  const maxLines = vscode.workspace.getConfiguration().get<number>('code-helper.replaceBackslashMaxLines', 10)
   const clipboardText = await vscode.env.clipboard.readText()
+  const excluded = /(\\[0abtnvfr\]|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}|\\[0-7]{3})/
+  const windowsPath = /^.?\w:.+$/
   if (
     !activeEditor ||
     event.document !== activeEditor.document ||
     !clipboardText.includes('\\') ||
-    /^(\\\w)+$/.test(clipboardText) || //转义字符
+    (excluded.test(clipboardText) && !windowsPath.test(clipboardText)) || //转义字符除了windows路径
     /([^\\]|^)\\{2}(?!\\)/.test(clipboardText) || //连续两个反斜杠
     event.reason || //undo & redo
     !event.contentChanges.length ||
-    event.contentChanges.some(e => e.text !== clipboardText)
+    event.contentChanges.some(e => e.text !== clipboardText) ||
+    (maxLines && clipboardText.split('\n').length > maxLines)
   )
     return true
+  console.log(event.contentChanges)
+
   for (const change of event.contentChanges) {
     const pasteContent = change.text
     const processedContent = pasteContent.replaceAll('\\', '\\\\')
-    const range = new vscode.Range(change.range.start, change.range.end.translate(undefined, +pasteContent.length))
+    const lineCount = (pasteContent.match(/\n/g) || []).length
+    const lastLineChars = pasteContent.split('\n').pop()?.length || 0
+    const range = new vscode.Range(change.range.start, change.range.end.translate(lineCount, lastLineChars))
     if (processedContent !== pasteContent) {
       await activeEditor.edit(editBuilder => {
         editBuilder.replace(range, processedContent)
@@ -34,26 +42,35 @@ export async function replaceBackslash(event: vscode.TextDocumentChangeEvent) {
  */
 export async function replaceQuotationMarks(event: vscode.TextDocumentChangeEvent) {
   const activeEditor = vscode.window.activeTextEditor
-  if (
-    (event.contentChanges.length >> 1) << 1 !== event.contentChanges.length ||
-    event.contentChanges.some(e => !/^['"`]$/.test(e.text)) ||
-    !activeEditor ||
-    event.document !== activeEditor.document ||
-    event.reason
-  )
-    return true
-  const posArr = event.contentChanges.map(e => e.range.start)
-  const sign = event.contentChanges[0].text
-  for (let i = 0; i < posArr.length; i += 2) {
-    const startPos = posArr[i],
-      endPos = posArr[i + 1]
-    const range = new vscode.Range(startPos.translate(0, 1), endPos.translate(0, 1))
-    const inside = event.document.getText(range)
-    const reg = /^['"`]([\s\S]+)['"`]$/
-    if (reg.test(inside) && !inside.startsWith(sign) && !inside.endsWith(sign)) {
-      await activeEditor.edit(editBuilder => {
-        editBuilder.replace(range, inside.replace(reg, '$1'))
-      })
-    }
+  if (!activeEditor || event.contentChanges.length === 0) return
+  if (event.reason || event.document !== activeEditor.document) return
+
+  const change = event.contentChanges[0]
+  const newChar = change.text
+  const validQuotes = ['"', "'", '`']
+
+  if (!validQuotes.includes(newChar)) return
+  const newSelections: vscode.Selection[] = []
+  const proc = async (index: number) => {
+    const selection = activeEditor.selections[index]
+    if (selection.isEmpty) return
+
+    const document = activeEditor.document
+    const selectedRange = new vscode.Range(selection.start.translate(0, -1), selection.end.translate(0, 1))
+    const textWithBoundary = document.getText(selectedRange)
+
+    const [leftChar, rightChar] = [textWithBoundary[1], textWithBoundary.slice(-2, -1)]
+    if (!validQuotes.includes(leftChar) || leftChar !== rightChar) return
+    await activeEditor.edit(editBuilder => {
+      editBuilder.replace(new vscode.Range(selection.start, selection.start.translate(0, 1)), '')
+      editBuilder.replace(new vscode.Range(selection.end.translate(0, -1), selection.end), '')
+      // 调整选区保持选中状态
+      const newSelection = new vscode.Selection(selection.start.translate(0, -1), selection.end.translate(0, -1))
+      newSelections.push(newSelection)
+    })
   }
+  for (let i = 0; i < activeEditor.selections.length; i++) {
+    await proc(i)
+  }
+  activeEditor.selections = newSelections
 }

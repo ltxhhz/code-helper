@@ -1,8 +1,8 @@
 {
   "name": "ltxhhz-code-helper",
-  "displayName": "code helper",
-  "description": "快速处理粘贴的反斜杠，快速切换引号",
-  "version": "0.0.2",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "0.0.3",
   "license": "MIT",
   "keywords": [
     "code helper",
@@ -25,7 +25,18 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": []
+    "commands": [],
+    "configuration": {
+      "title": "%config.title%",
+      "properties": {
+        "code-helper.replaceBackslashMaxLines": {
+          "type": "number",
+          "default": 10,
+          "description": "%config.maxLines.description%",
+          "minimum": 0
+        }
+      }
+    }
   },
   "bugs": {
     "url": "https://github.com/ltxhhz/code-helper/issues"

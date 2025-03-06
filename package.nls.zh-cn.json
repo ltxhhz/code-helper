@@ -1,0 +1,6 @@
+{
+  "displayName": "代码助手",
+  "description": "快速处理粘贴的反斜杠，快速切换引号。",
+  "config.title": "代码助手配置",
+  "config.maxLines.description": "当选中文本行数小于此值时才会执行反斜杠替换（0表示始终生效）"
+}

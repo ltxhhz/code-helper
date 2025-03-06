@@ -1,0 +1,6 @@
+{
+  "displayName": "Code Helper",
+  "description": "Quickly process pasted backslashes and quickly switch quotes",
+  "config.title": "Code Helper Settings",
+  "config.maxLines.description": "Replace backslashes only when selected lines less than this value (0 means always)"
+}
