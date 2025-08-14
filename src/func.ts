@@ -72,5 +72,7 @@ export async function replaceQuotationMarks(event: vscode.TextDocumentChangeEven
   for (let i = 0; i < activeEditor.selections.length; i++) {
     await proc(i)
   }
-  activeEditor.selections = newSelections
+  if (newSelections.length) {
+    activeEditor.selections = newSelections
+  }
 }

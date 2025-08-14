@@ -4,6 +4,10 @@ All notable changes to the "code-helper" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## v0.0.4 - 2025/8/14
+
+- 修复新版本光标跳到第一行的问题
+
 ## v0.0.3 - 2025/3/6
 
 - 修复多个问题
