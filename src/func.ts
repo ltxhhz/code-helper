@@ -23,18 +23,34 @@ export async function replaceBackslash(event: vscode.TextDocumentChangeEvent) {
     return true
   console.log(event.contentChanges)
 
-  for (const change of event.contentChanges) {
-    const pasteContent = change.text
-    const processedContent = pasteContent.replaceAll('\\', '\\\\')
-    const lineCount = (pasteContent.match(/\n/g) || []).length
-    const lastLineChars = pasteContent.split('\n').pop()?.length || 0
-    const range = new vscode.Range(change.range.start, change.range.end.translate(lineCount, lastLineChars))
-    if (processedContent !== pasteContent) {
-      await activeEditor.edit(editBuilder => {
+  await activeEditor.edit(editBuilder => {
+    for (const change of event.contentChanges) {
+      const pasteContent = change.text
+      const processedContent = pasteContent.replaceAll('\\', '\\\\')
+
+      // 💡 修复：精确计算粘贴内容结束的 Position
+      const lines = pasteContent.split('\n')
+      const lineCount = lines.length - 1
+      const lastLineLength = lines[lines.length - 1].length
+
+      const startPos = change.range.start
+      let endPos: vscode.Position
+
+      if (lineCount === 0) {
+        // 单行情况：在原有的 character 位置上往后平移
+        endPos = startPos.translate(0, lastLineLength)
+      } else {
+        // 多行情况：跨行后，最后一行的 character 绝对位置就是 lastLineLength
+        endPos = new vscode.Position(startPos.line + lineCount, lastLineLength)
+      }
+
+      const range = new vscode.Range(startPos, endPos)
+
+      if (processedContent !== pasteContent) {
         editBuilder.replace(range, processedContent)
-      })
+      }
     }
-  }
+  })
 }
 
 /**
@@ -50,28 +66,34 @@ export async function replaceQuotationMarks(event: vscode.TextDocumentChangeEven
   const validQuotes = ['"', "'", '`']
 
   if (!validQuotes.includes(newChar)) return
+
   const newSelections: vscode.Selection[] = []
-  const proc = async (index: number) => {
-    const selection = activeEditor.selections[index]
-    if (selection.isEmpty) return
+  const document = activeEditor.document
 
-    const document = activeEditor.document
-    const selectedRange = new vscode.Range(selection.start.translate(0, -1), selection.end.translate(0, 1))
-    const textWithBoundary = document.getText(selectedRange)
+  // 将所有修改合并到一次 edit 事务中
+  await activeEditor.edit(editBuilder => {
+    for (const selection of activeEditor.selections) {
+      if (selection.isEmpty) continue
 
-    const [leftChar, rightChar] = [textWithBoundary[1], textWithBoundary.slice(-2, -1)]
-    if (!validQuotes.includes(leftChar) || leftChar !== rightChar) return
-    await activeEditor.edit(editBuilder => {
+      const selectedRange = new vscode.Range(selection.start.translate(0, -1), selection.end.translate(0, 1))
+      const textWithBoundary = document.getText(selectedRange)
+
+      // 防止获取范围越界导致报错
+      if (textWithBoundary.length < 2) continue
+
+      const leftChar = textWithBoundary[0] // translate(-1) 后的第一个字符
+      const rightChar = textWithBoundary.slice(-1) // 最后一个字符
+
+      if (!validQuotes.includes(leftChar) || leftChar !== rightChar) continue
+
       editBuilder.replace(new vscode.Range(selection.start, selection.start.translate(0, 1)), '')
       editBuilder.replace(new vscode.Range(selection.end.translate(0, -1), selection.end), '')
+
       // 调整选区保持选中状态
-      const newSelection = new vscode.Selection(selection.start.translate(0, -1), selection.end.translate(0, -1))
-      newSelections.push(newSelection)
-    })
-  }
-  for (let i = 0; i < activeEditor.selections.length; i++) {
-    await proc(i)
-  }
+      newSelections.push(new vscode.Selection(selection.start.translate(0, -1), selection.end.translate(0, -1)))
+    }
+  })
+
   if (newSelections.length) {
     activeEditor.selections = newSelections
   }
