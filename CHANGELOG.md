@@ -1,8 +1,12 @@
 # Change Log
 
-All notable changes to the "code-helper" extension will be documented in this file.
+## v1.0.1 - 2026/8/24
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+- 将 .eslintrc.json 迁移为新的 eslint.config.js 配置文件
+- 更新 .gitignore 和 .vscodeignore 添加 note.md 和相关忽略规则
+- 修复 replaceBackslash 函数中行尾反斜杠的检测逻辑
+- 优化 replaceQuotationMarks 函数，添加对 VSCode 自动包裹行为的判断
+- 移除调试用的 console.log 语句
 
 ## v1.0.0 - 2026/3/13
 

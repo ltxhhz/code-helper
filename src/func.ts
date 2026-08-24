@@ -15,13 +15,14 @@ export async function replaceBackslash(event: vscode.TextDocumentChangeEvent) {
     !clipboardText.includes('\\') ||
     (excluded.test(clipboardText) && !windowsPath.test(clipboardText)) || //转义字符除了windows路径
     /([^\\]|^)\\{2}(?!\\)/.test(clipboardText) || //连续两个反斜杠
+    /\\$/m.test(clipboardText) || //在行尾
     event.reason || //undo & redo
     !event.contentChanges.length ||
     event.contentChanges.some(e => e.text !== clipboardText) ||
     (maxLines && clipboardText.split('\n').length > maxLines)
   )
     return true
-  console.log(event.contentChanges)
+  // console.log(event.contentChanges)
 
   await activeEditor.edit(editBuilder => {
     for (const change of event.contentChanges) {
@@ -85,6 +86,11 @@ export async function replaceQuotationMarks(event: vscode.TextDocumentChangeEven
       const rightChar = textWithBoundary.slice(-1) // 最后一个字符
 
       if (!validQuotes.includes(leftChar) || leftChar !== rightChar) continue
+      // 输入的引号与选中文本两侧引号相同时，判断是否为 VSCode 自动包裹行为
+      const secondChar = textWithBoundary[1]
+      const secondLastChar = textWithBoundary[textWithBoundary.length - 2]
+      // 第2和倒数第2个字符一样且是引号，说明选中文本本身含引号，继续处理；否则跳过
+      if (newChar === leftChar && !(validQuotes.includes(secondChar) && secondChar === secondLastChar && newChar !== secondChar)) continue
 
       editBuilder.replace(new vscode.Range(selection.start, selection.start.translate(0, 1)), '')
       editBuilder.replace(new vscode.Range(selection.end.translate(0, -1), selection.end), '')
